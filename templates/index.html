@@ -44,12 +44,12 @@
                     <button 
                         type="button"
                         @click="showPresets = !showPresets"
-                        class="text-xs text-pink-600 hover:text-pink-800 flex items-center"
+                        class="text-sm bg-pink-100 hover:bg-pink-200 text-pink-800 py-1 px-3 rounded-md border border-pink-300 transition-colors font-medium flex items-center"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
-                        Sample presets
+                        Load Example Text
                     </button>
                 </div>
                 
@@ -136,23 +136,31 @@
                     </label>
                     
                     <!-- CharBoundary Settings -->
-                    <div id="charboundary-settings" class="col-span-2 sm:col-span-3 mt-2 ml-6 p-2 bg-lime-50 border border-lime-200 rounded-md hidden {% if not shared_tokenizers or 'charboundary' in shared_tokenizers %}{% else %}hidden{% endif %}">
+                    <div id="charboundary-settings" class="col-span-2 sm:col-span-3 mt-2 ml-6 p-4 bg-lime-100 border border-lime-300 rounded-md shadow-sm hidden {% if not shared_tokenizers or 'charboundary' in shared_tokenizers %}{% else %}hidden{% endif %}">
                         <div class="flex flex-col">
-                            <label for="charboundary_threshold" class="text-xs text-lime-800 mb-1">
-                                CharBoundary Probability Threshold: <span id="threshold-value">0.5</span>
-                                <span class="text-xs text-lime-600">(higher = fewer sentences)</span>
+                            <label for="charboundary_threshold" class="text-sm font-medium text-lime-800 mb-2">
+                                CharBoundary Probability Threshold: <span id="threshold-value" class="font-bold">0.5</span>
                             </label>
-                            <input 
-                                type="range" 
-                                name="charboundary_threshold" 
-                                id="charboundary_threshold" 
-                                min="0.01" 
-                                max="0.99" 
-                                step="0.01" 
-                                value="0.5" 
-                                class="w-full h-2 bg-lime-100 rounded-lg appearance-none cursor-pointer"
-                                oninput="document.getElementById('threshold-value').textContent = this.value"
-                            >
+                            <p class="text-xs text-lime-700 mb-3">
+                                The probability threshold controls how confident the model must be to mark a position as a sentence boundary. 
+                                Higher values (closer to 1.0) result in fewer sentence breaks, while lower values (closer to 0) produce more sentence breaks.
+                                Adjust this slider to fine-tune the sentence detection sensitivity.
+                            </p>
+                            <div class="flex items-center">
+                                <span class="text-xs text-lime-700 mr-2">More Sentences</span>
+                                <input 
+                                    type="range" 
+                                    name="charboundary_threshold" 
+                                    id="charboundary_threshold" 
+                                    min="0.01" 
+                                    max="0.99" 
+                                    step="0.01" 
+                                    value="0.5" 
+                                    class="flex-grow h-3 bg-lime-200 rounded-lg appearance-none cursor-pointer"
+                                    oninput="document.getElementById('threshold-value').textContent = this.value"
+                                >
+                                <span class="text-xs text-lime-700 ml-2">Fewer Sentences</span>
+                            </div>
                         </div>
                     </div>
                 </div>

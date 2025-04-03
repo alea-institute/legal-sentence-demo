@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 presets.forEach(preset => {
                     const button = document.createElement('button');
                     button.type = 'button';
-                    button.className = 'text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-2 rounded border border-gray-300 transition-colors';
+                    button.className = 'text-xs bg-pink-50 hover:bg-pink-100 text-pink-800 py-2 px-3 rounded border border-pink-200 transition-colors font-medium';
                     button.textContent = preset.name;
                     button.title = preset.description;
                     
