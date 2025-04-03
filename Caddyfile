@@ -1,0 +1,32 @@
+sentences.aleainstitute.ai {
+    reverse_proxy localhost:8080
+    
+    # Enable automatic HTTPS
+    tls {
+        # Caddy will automatically obtain and manage certificates
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/sentences.aleainstitute.ai.log
+    }
+    
+    # Enable HTTP/2 and HTTP/3
+    protocols {
+        http1
+        h2
+        h3
+    }
+    
+    # Security headers
+    header {
+        # Enable HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+        # XSS protection
+        X-XSS-Protection "1; mode=block"
+        # Disable frame embedding
+        X-Frame-Options "SAMEORIGIN"
+    }
+}

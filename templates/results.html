@@ -1,0 +1,262 @@
+<!-- This is a partial template that will be loaded via HTMX -->
+<div x-data="{ activeTab: 'table-view', visibleTokenizers: [{% for t in tokenizers %}'{{ t.name }}',{% endfor %}] }" class="bg-white rounded-lg shadow-md overflow-hidden">
+    <!-- Tab navigation -->
+    <div class="bg-gray-50 border-b border-gray-200 px-4 py-2">
+        <nav class="flex space-x-4">
+            <button 
+                @click="activeTab = 'inline-markers'" 
+                :class="{ 'text-blue-600 border-b-2 border-blue-600': activeTab === 'inline-markers', 'text-gray-500 hover:text-gray-700': activeTab !== 'inline-markers' }"
+                class="py-2 px-1 font-medium text-sm focus:outline-none"
+            >
+                Color-Coded Markers
+            </button>
+            <button 
+                @click="activeTab = 'table-view'; setTimeout(() => { const event = new CustomEvent('tableViewActivated'); document.dispatchEvent(event); }, 50)" 
+                :class="{ 'text-blue-600 border-b-2 border-blue-600': activeTab === 'table-view', 'text-gray-500 hover:text-gray-700': activeTab !== 'table-view' }"
+                class="py-2 px-1 font-medium text-sm focus:outline-none"
+            >
+                Sentence Table
+            </button>
+        </nav>
+    </div>
+    
+        <!-- Results summary - Moved to top -->
+    <div class="bg-green-50 border border-green-100 rounded-lg shadow-sm px-4 py-4 mb-6">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-medium text-green-800">Summary</h3>
+            
+            {% if share_id %}
+            <div class="flex items-center">
+                <span class="text-xs text-gray-500 mr-2">Share:</span>
+                <a 
+                    id="share-link" 
+                    href="{{ base_url }}/share/{{ share_id }}" 
+                    class="text-xs text-pink-600 hover:text-pink-800 underline"
+                    target="_blank"
+                >
+                    {{ base_url }}/share/{{ share_id }}
+                </a>
+                <button 
+                    id="copy-share-link" 
+                    class="ml-2 inline-flex items-center bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs py-1 px-2 rounded transition-colors"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 mr-1">
+                        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                    </svg>
+                    Copy
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {% for tokenizer in tokenizers %}
+            <div class="bg-white rounded p-3 border-l-4 border-{{ tokenizer.color }}-400 shadow-sm relative">
+                {% if tokenizer.is_fewest_sentences or tokenizer.is_fastest %}
+                <div class="absolute top-1 right-1 flex gap-1">
+                    {% if tokenizer.is_fewest_sentences %}
+                    <span class="inline-flex items-center justify-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800" title="Fewest sentences">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 mr-1">
+                            <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd" />
+                        </svg>
+                        Min
+                    </span>
+                    {% endif %}
+                    {% if tokenizer.is_fastest %}
+                    <span class="inline-flex items-center justify-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800" title="Fastest processing">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 mr-1">
+                            <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" clip-rule="evenodd" />
+                        </svg>
+                        Fast
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <p class="text-{{ tokenizer.color }}-700 font-medium">{{ tokenizer.display_name }} <span class="text-{{ tokenizer.color }}-500 font-normal text-xs">{{ tokenizer.model_details }}</span></p>
+                <p class="text-lg font-display font-bold">{{ tokenizer.sentence_count }} sentences</p>
+                <p class="text-xs text-gray-700">{{ tokenizer.throughput }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Tab contents -->
+    <div class="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Color-coded inline markers view -->
+        <div x-show="activeTab === 'inline-markers'" class="space-y-4">
+            <div class="flex flex-wrap items-center gap-4 mb-4">
+                <p class="text-sm font-medium">Toggle tokenizers:</p>
+                <div class="flex flex-wrap gap-2">
+                    {% for tokenizer in tokenizers %}
+                    <label class="inline-flex items-center">
+                        <input 
+                            type="checkbox" 
+                            x-model="visibleTokenizers" 
+                            value="{{ tokenizer.name }}" 
+                            class="h-4 w-4 text-{{ tokenizer.color }}-600 rounded"
+                        >
+                        <span class="ml-2 text-{{ tokenizer.color }}-700 font-medium">{{ tokenizer.display_name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="border border-gray-200 rounded-md overflow-hidden shadow-sm">
+                <div class="bg-gray-50 px-6 py-4 overflow-auto prose prose-lg max-w-none prose-p:my-2 prose-p:leading-relaxed prose-headings:mt-4 prose-pre:bg-transparent prose-pre:p-0 prose-pre:m-0">
+                    <article class="prose-legal">
+                        <pre class="whitespace-pre-wrap font-mono text-sm leading-relaxed tracking-normal py-3 text-gray-900">{% for segment in inline_markers %}{% if segment.is_boundary %}<span class="text-{{ segment.color }}-700 font-bold inline-block px-0.5" :class="{ 'hidden': !visibleTokenizers.includes('{{ segment.tokenizer }}') }">{{ segment.text }}</span>{% else %}<span class="inline text-gray-900">{{ segment.text }}</span>{% endif %}{% endfor %}</pre>
+                    </article>
+                </div>
+            </div>
+            
+            <div class="mt-2 text-sm text-gray-500">
+                <p>Legend:</p>
+                <ul class="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                    {% for tokenizer in tokenizers %}
+                    <li class="flex items-center">
+                        <span class="inline-block w-3 h-3 bg-{{ tokenizer.color }}-700 mr-1"></span>
+                        <span class="font-medium">{{ tokenizer.display_name }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Interactive sentence table view -->
+        <div x-show="activeTab === 'table-view'" class="w-full max-w-[95vw] overflow-x-auto">
+            <!-- Table size controls -->
+            <div class="flex justify-end mb-4">
+                <button 
+                    @click="document.getElementById('sentence-table').classList.toggle('table-fixed')"
+                    class="px-3 py-1 text-sm bg-pink-600 text-white rounded hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                >
+                    Toggle Fixed/Auto Width
+                </button>
+            </div>
+            
+            <table id="sentence-table" class="w-full table-auto divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="p-3 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10" style="width: 60px;">
+                            #
+                        </th>
+                        {% for name in sentence_table.tokenizer_names %}
+                        <th class="p-3 md:px-6 md:py-3 text-left text-xs font-medium text-{{ sentence_table.tokenizer_colors[name] }}-600 uppercase tracking-wider" style="width: calc((100% - 60px) / {{ sentence_table.tokenizer_names|length }});">
+                            {% for t in tokenizers %}
+                                {% if t.name == name %}
+                                    {{ t.display_name }} <span class="font-normal normal-case">{{ t.model_details }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for row_index in range(sentence_table.max_rows) %}
+                    <tr>
+                        <td class="p-3 md:px-6 md:py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10" style="width: 60px;">
+                            {{ row_index + 1 }}
+                        </td>
+                        {% for tokenizer_name in sentence_table.tokenizer_names %}
+                        <td class="p-2 md:p-4 text-sm text-gray-700 {% if row_index < sentence_table.sentences[tokenizer_name]|length %}bg-{{ sentence_table.tokenizer_colors[tokenizer_name] }}-50{% endif %}" style="width: calc((100% - 60px) / {{ sentence_table.tokenizer_names|length }})">
+                            {% if row_index < sentence_table.sentences[tokenizer_name]|length %}
+                            <div class="whitespace-pre-wrap font-mono leading-relaxed prose-legal py-1 px-1 h-full flex flex-col">
+                                <span class="block">{{ sentence_table.sentences[tokenizer_name][row_index] }}</span>
+                            </div>
+                            {% else %}
+                            <div class="text-gray-300">—</div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Sentence Length Distribution -->
+        <div x-show="activeTab === 'table-view'" class="mt-8">
+            <h3 class="text-lg font-medium text-gray-700 mb-4">Sentence Length Distribution</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="distribution-container">
+                {% for tokenizer_name, distribution in length_distribution.items() %}
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h4 class="text-sm font-medium text-{{ sentence_table.tokenizer_colors[tokenizer_name] }}-700 mb-2">
+                        {{ sentence_table.tokenizer_display_names[tokenizer_name] }}
+                    </h4>
+                    {% if distribution %}
+                    <div class="space-y-2">
+                        {% for bin in distribution %}
+                        <div class="flex items-center">
+                            <div class="w-16 text-xs text-gray-500">{{ bin.min_length }}-{{ bin.max_length }}</div>
+                            <div class="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+                                <div 
+                                    class="h-full bg-{{ sentence_table.tokenizer_colors[tokenizer_name] }}-500 distribution-bar" 
+                                    style="width: {{ bin.percentage }}%"
+                                ></div>
+                            </div>
+                            <div class="w-16 text-xs text-gray-500 ml-2">{{ bin.count }} ({{ bin.actual_percentage }}%)</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-sm text-gray-500">No sentences found</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Text Statistics -->
+        <div class="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h3 class="text-lg font-medium text-gray-700 mb-3">Text Statistics</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div class="bg-white p-3 rounded border border-gray-200">
+                    <p class="text-sm text-gray-500">Characters</p>
+                    <p class="text-lg font-medium">{{ text_stats.character_count }}</p>
+                </div>
+                <div class="bg-white p-3 rounded border border-gray-200">
+                    <p class="text-sm text-gray-500">Words</p>
+                    <p class="text-lg font-medium">{{ text_stats.word_count }}</p>
+                </div>
+                <div class="bg-white p-3 rounded border border-gray-200">
+                    <p class="text-sm text-gray-500">Tokens</p>
+                    <p class="text-lg font-medium">{{ text_stats.token_count }}</p>
+                </div>
+                <div class="bg-white p-3 rounded border border-gray-200">
+                    <p class="text-sm text-gray-500">Avg. Word Length</p>
+                    <p class="text-lg font-medium">{{ text_stats.avg_word_length }}</p>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-gray-600 bg-gray-100">
+                        <tr>
+                            <th class="px-4 py-2">Tokenizer</th>
+                            <th class="px-4 py-2">Avg. Words/Sentence</th>
+                            <th class="px-4 py-2">Avg. Chars/Sentence</th>
+                            <th class="px-4 py-2">Min Length</th>
+                            <th class="px-4 py-2">Max Length</th>
+                            <th class="px-4 py-2">Median Length</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for tokenizer_name, stats in text_stats.tokenizer_stats.items() %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-2 font-medium text-{{ sentence_table.tokenizer_colors[tokenizer_name] }}-700">
+                                {{ sentence_table.tokenizer_display_names[tokenizer_name] }}
+                            </td>
+                            <td class="px-4 py-2">{{ stats.avg_words_per_sentence }}</td>
+                            <td class="px-4 py-2">{{ stats.avg_chars_per_sentence }}</td>
+                            <td class="px-4 py-2">{{ stats.min_sentence_length }}</td>
+                            <td class="px-4 py-2">{{ stats.max_sentence_length }}</td>
+                            <td class="px-4 py-2">{{ stats.median_sentence_length }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

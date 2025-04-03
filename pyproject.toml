@@ -1,0 +1,51 @@
+[project]
+name = "legal-sentence-demo"
+version = "0.1.0"
+description = "Demonstration of legal sentence boundary detection"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "charboundary[onnx]>=0.4.6",
+    "curated-transformers>=2.0.1",
+    "jinja2>=3.1.6",
+    "nltk>=3.9.1",
+    "nupunkt>=0.5.0",
+    "pysbd>=0.3.4",
+    "spacy>=3.8.4",
+    "fastapi>=0.115.12",
+    "uvicorn>=0.34.0",
+    "python-multipart>=0.0.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.7.0",
+    "ruff>=0.0.284",
+    "mypy>=1.5.1",
+    "httpx>=0.25.0"
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+select = ["E", "F", "I", "N", "W", "B", "C4", "PT", "SIM", "ARG", "ERA"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = "test.*"
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
