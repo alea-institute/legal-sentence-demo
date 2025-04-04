@@ -1,5 +1,11 @@
 <!-- This is a partial template that will be loaded via HTMX -->
-<div x-data="{ activeTab: 'table-view', visibleTokenizers: [{% for t in tokenizers %}'{{ t.name }}',{% endfor %}] }" class="bg-white rounded-lg shadow-md overflow-hidden">
+<div x-data="{ 
+    activeTab: 'table-view', 
+    visibleTokenizers: [{% for t in tokenizers %}'{{ t.name }}',{% endfor %}],
+    toggleAllTokenizers(show) {
+        this.visibleTokenizers = show ? [{% for t in tokenizers %}'{{ t.name }}',{% endfor %}] : [];
+    }
+}" class="bg-white rounded-lg shadow-md overflow-hidden">
     <!-- Tab navigation -->
     <div class="bg-gray-50 border-b border-gray-200 px-4 py-2">
         <nav class="flex space-x-4">
@@ -123,25 +129,56 @@
         </div>
         
         <!-- Interactive sentence table view -->
-        <div x-show="activeTab === 'table-view'" class="w-full max-w-[95vw] overflow-x-auto">
+        <div x-show="activeTab === 'table-view'" class="w-full max-w-full overflow-x-auto">
             <!-- Table size controls -->
-            <div class="flex justify-end mb-4">
-                <button 
-                    @click="document.getElementById('sentence-table').classList.toggle('table-fixed')"
-                    class="px-3 py-1 text-sm bg-pink-600 text-white rounded hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                >
-                    Toggle Fixed/Auto Width
-                </button>
+            <div class="mb-4">
+                <div class="flex flex-wrap items-center gap-2 md:gap-4">
+                    <div class="w-full flex items-center justify-between mb-2">
+                        <p class="text-sm font-medium">Toggle tokenizers:</p>
+                        <div class="flex gap-1 md:gap-2">
+                            <button 
+                                @click="toggleAllTokenizers(true)" 
+                                class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 rounded"
+                            >
+                                Select All
+                            </button>
+                            <button 
+                                @click="toggleAllTokenizers(false)" 
+                                class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 rounded"
+                            >
+                                Select None
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-1 md:gap-2">
+                        {% for tokenizer in tokenizers %}
+                        <label class="inline-flex items-center mb-1 mr-1">
+                            <input 
+                                type="checkbox" 
+                                x-model="visibleTokenizers" 
+                                value="{{ tokenizer.name }}" 
+                                class="h-3 w-3 md:h-4 md:w-4 text-{{ tokenizer.color }}-600 rounded"
+                                checked
+                            >
+                            <span class="ml-1 md:ml-2 text-xs md:text-sm text-{{ tokenizer.color }}-700 font-medium">{{ tokenizer.display_name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
             
-            <table id="sentence-table" class="w-full table-auto divide-y divide-gray-200">
+            <table id="sentence-table" class="w-full table-fixed divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="p-3 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10" style="width: 60px;">
+                        <th class="p-3 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10" style="min-width: 60px; width: 60px;">
                             #
                         </th>
                         {% for name in sentence_table.tokenizer_names %}
-                        <th class="p-3 md:px-6 md:py-3 text-left text-xs font-medium text-{{ sentence_table.tokenizer_colors[name] }}-600 uppercase tracking-wider" style="width: calc((100% - 60px) / {{ sentence_table.tokenizer_names|length }});">
+                        <th 
+                            x-show="visibleTokenizers.includes('{{ name }}')" 
+                            class="p-2 md:px-4 md:py-3 text-left text-xs font-medium text-{{ sentence_table.tokenizer_colors[name] }}-600 uppercase tracking-wider whitespace-nowrap"
+                            x-bind:style="'width: calc((100% - 60px) / ' + visibleTokenizers.length + ');'"
+                        >
                             {% for t in tokenizers %}
                                 {% if t.name == name %}
                                     {{ t.display_name }} <span class="font-normal normal-case">{{ t.model_details }}</span>
@@ -154,14 +191,18 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for row_index in range(sentence_table.max_rows) %}
                     <tr>
-                        <td class="p-3 md:px-6 md:py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10" style="width: 60px;">
+                        <td class="p-3 md:px-6 md:py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10" style="min-width: 60px; width: 60px;">
                             {{ row_index + 1 }}
                         </td>
                         {% for tokenizer_name in sentence_table.tokenizer_names %}
-                        <td class="p-2 md:p-4 text-sm text-gray-700 {% if row_index < sentence_table.sentences[tokenizer_name]|length %}bg-{{ sentence_table.tokenizer_colors[tokenizer_name] }}-50{% endif %}" style="width: calc((100% - 60px) / {{ sentence_table.tokenizer_names|length }})">
+                        <td 
+                            x-show="visibleTokenizers.includes('{{ tokenizer_name }}')" 
+                            class="p-2 md:p-4 text-sm text-gray-700 {% if row_index < sentence_table.sentences[tokenizer_name]|length %}bg-{{ sentence_table.tokenizer_colors[tokenizer_name] }}-50{% endif %}"
+                            x-bind:style="'width: calc((100% - 60px) / ' + visibleTokenizers.length + ');'"
+                        >
                             {% if row_index < sentence_table.sentences[tokenizer_name]|length %}
-                            <div class="whitespace-pre-wrap font-mono leading-relaxed prose-legal py-1 px-1 h-full flex flex-col">
-                                <span class="block">{{ sentence_table.sentences[tokenizer_name][row_index] }}</span>
+                            <div class="whitespace-pre-wrap font-mono leading-tight md:leading-relaxed prose-legal py-0.5 px-0.5 md:py-1 md:px-1 h-full flex flex-col">
+                                <span class="block text-xs md:text-sm">{{ sentence_table.sentences[tokenizer_name][row_index] }}</span>
                             </div>
                             {% else %}
                             <div class="text-gray-300">—</div>
@@ -179,7 +220,10 @@
             <h3 class="text-lg font-medium text-gray-700 mb-4">Sentence Length Distribution</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="distribution-container">
                 {% for tokenizer_name, distribution in length_distribution.items() %}
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div 
+                    x-show="visibleTokenizers.includes('{{ tokenizer_name }}')"
+                    class="bg-gray-50 p-4 rounded-lg border border-gray-200"
+                >
                     <h4 class="text-sm font-medium text-{{ sentence_table.tokenizer_colors[tokenizer_name] }}-700 mb-2">
                         {{ sentence_table.tokenizer_display_names[tokenizer_name] }}
                     </h4>
@@ -243,7 +287,10 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         {% for tokenizer_name, stats in text_stats.tokenizer_stats.items() %}
-                        <tr class="hover:bg-gray-50">
+                        <tr 
+                            x-show="visibleTokenizers.includes('{{ tokenizer_name }}')"
+                            class="hover:bg-gray-50"
+                        >
                             <td class="px-4 py-2 font-medium text-{{ sentence_table.tokenizer_colors[tokenizer_name] }}-700">
                                 {{ sentence_table.tokenizer_display_names[tokenizer_name] }}
                             </td>
